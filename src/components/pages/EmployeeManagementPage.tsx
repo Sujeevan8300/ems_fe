@@ -44,6 +44,7 @@ const EmployeeManagementPage = () => {
             }
         } catch (error) {
             console.log(error);
+            alert(error)
         }
     };
 
@@ -88,10 +89,13 @@ const EmployeeManagementPage = () => {
   return (
     <div className='em_div'>
         <div className='em_div_1'>
-            <button onClick={() => setShowForm(true)}>Add Employee</button>
+            <div className='em_header'>
+                <span>Employee Management System</span>
+                <button onClick={() => setShowForm(true)}>Add Employee</button>
+            </div>
 
             {showForm && (
-                <div>
+                <div className='em_form'>
                     <input
                         type="text"
                         placeholder="Name"
