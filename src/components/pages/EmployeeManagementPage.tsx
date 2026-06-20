@@ -5,8 +5,16 @@ import type { Employee } from '../../modal/Employee';
 const EmployeeManagementPage = () => {
 
     const [empolyees, setEmployees] = useState<Employee[]>();
+
     const [showForm, setShowForm] = useState(false);
     const [formData, setFormData] = useState({
+        name: '',
+        designation: '',
+        salary: 0
+    });
+
+    const [editingId, setEditingId] = useState<string | null>(null);
+    const [editFormData, setEditFormData] = useState({
         name: '',
         designation: '',
         salary: 0
@@ -26,14 +34,46 @@ const EmployeeManagementPage = () => {
         try {
             const resp = await fetch('http://localhost:8081/api/v1/employees', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(formData)
             });
             if (resp.ok) {
                 setShowForm(false);
                 setFormData({ name: '', designation: '', salary: 0 });
+                fetchEmplyess();
+            }
+        } catch (error) {
+            console.log(error);
+        }
+    };
+
+    const handleEditClick = (e: Employee) => {
+        setEditingId(e.id);
+        setEditFormData({ name: e.name, designation: e.designation, salary: e.salary });
+    };
+
+    const updateEmployee = async (id: string) => {
+        try {
+            const resp = await fetch(`http://localhost:8081/api/v1/employees/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(editFormData)
+            });
+            if (resp.ok) {
+                setEditingId(null);
+                fetchEmplyess();
+            }
+        } catch (error) {
+            console.log(error);
+        }
+    };
+
+    const deleteEmployee = async (id: string) => {
+        try {
+            const resp = await fetch(`http://localhost:8081/api/v1/employees/${id}`, {
+                method: 'DELETE'
+            });
+            if (resp.ok) {
                 fetchEmplyess();
             }
         } catch (error) {
@@ -79,45 +119,56 @@ const EmployeeManagementPage = () => {
         <table>
             <thead>
                 <tr>
-                    <td>
-                        Employee No
-                    </td>
-                    <td>
-                        Employee Name
-                    </td>
-                    <td>
-                        Designation
-                    </td>
-                    <td>
-                        Salary
-                    </td>
-                    <td>
-                        Actions
-                    </td>
+                    <td>Employee No</td>
+                    <td>Employee Name</td>
+                    <td>Designation</td>
+                    <td>Salary</td>
+                    <td>Actions</td>
                 </tr>
             </thead>
             <tbody>
                 {
                     empolyees?.map((e) => (
-                            <tr key={e.id}>
+                        <React.Fragment key={e.id}>
+                            <tr>
+                                <td>{e.id}</td>
+                                <td>{e.name}</td>
+                                <td>{e.designation}</td>
+                                <td>{e.salary}</td>
                                 <td>
-                                    {e.id}
-                                </td>
-                                <td>
-                                    {e.name}
-                                </td>
-                                <td>
-                                    {e.designation}
-                                </td>
-                                <td>
-                                    {e.salary}
-                                </td>
-                                <td>
-                                    <button>Edit</button>
-                                    <button>Delete</button>
+                                    <button onClick={() => handleEditClick(e)}>Edit</button>
+                                    <button onClick={() => deleteEmployee(e.id)}>Delete</button>
                                 </td>
                             </tr>
-                            ))
+
+                            {editingId === e.id && (
+                                <tr>
+                                    <td colSpan={5}>
+                                        <input
+                                            type="text"
+                                            placeholder="Name"
+                                            value={editFormData.name}
+                                            onChange={(ev) => setEditFormData({ ...editFormData, name: ev.target.value })}
+                                        />
+                                        <input
+                                            type="text"
+                                            placeholder="Designation"
+                                            value={editFormData.designation}
+                                            onChange={(ev) => setEditFormData({ ...editFormData, designation: ev.target.value })}
+                                        />
+                                        <input
+                                            type="number"
+                                            placeholder="Salary"
+                                            value={editFormData.salary}
+                                            onChange={(ev) => setEditFormData({ ...editFormData, salary: Number(ev.target.value) })}
+                                        />
+                                        <button onClick={() => updateEmployee(e.id)}>Update</button>
+                                        <button onClick={() => setEditingId(null)}>Cancel</button>
+                                    </td>
+                                </tr>
+                            )}
+                        </React.Fragment>
+                    ))
                 }
             </tbody>
         </table>
